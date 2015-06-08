@@ -1,32 +1,11 @@
 body {
-	position: relative;
-	margin: 0;
-	background-color: OldLace;
+	padding: 0 5%;
 	font-family: Roboto, sans-serif;
 	font-weight: 400;
-	color: #222;
 }
-body:before {
-	content: "";
 
-	position: absolute;
-	right: 36em;
-	left: -200px;
-	top: -20%;
-	bottom: 0;
-
-	z-index: -1;
-
-	background-image: url(./favicon.ico);
-	background-size: contain;
-	background-position: right top;
-	background-repeat: no-repeat;
-
-	image-rendering: -moz-crisp-edges;
-	image-rendering: -o-crisp-edges;
-	image-rendering: -webkit-optimize-contrast;
-	-ms-interpolation-mode: nearest-neighbor;
-	image-rendering: pixelated;
+h1, h2, h3, h4, h5, h6 {
+	font-weight: 500;
 }
 
 a {
@@ -42,59 +21,93 @@ a {
 	vertical-align: middle;
 }
 
-h2, h3, h4, h5, h6 {
-	font-weight: 500;
+header,
+article {
+	max-width: 35em;
+	margin: 0 auto;
 }
 
-header {
-	position: absolute;
-	top: 7em;
-	right: 32em;
-	width: 400px;
+article,
+footer {
+	color: #333;
 }
-header h1 {
-	font-size: 10em;
-	margin: 0;
+
+h1 .logo img {
+	display: block;
+	width: 100%;
+	height: 100%;
+
+	-ms-interpolation-mode: nearest-neighbor;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
+	image-rendering: -webkit-crisp-edges;
+	image-rendering: crisp-edges;
+	image-rendering: pixelated;
 }
-header .name {
-	position: absolute;
-
-	transform: rotate(-15deg);
-	transform-origin: left top;
-
+h1 .name {
 	font-family: Bangers, Roboto, sans-serif;
 	letter-spacing: .05em;
-	color: Black;
+	text-shadow: 3px 3px White;
 }
-header .suffix {
-	color: transparent;
-
-	z-index: -1;
-
-	position: absolute;
-	right: 0;
-	bottom: -100px;
-	width: 100px;
-	height: 100px;
-
-	background-image: url('./js.svg');
-	background-size: contain;
-	background-repeat: no-repeat;
-}
-
-article {
-	padding-top: 16em;
-	padding-bottom: 10em;
-	margin-right: 5em;
-	margin-left: auto;
-	width: 30em;
+h1 .suffix {
+	font-size: .3em;
+	text-transform: lowercase;
+	margin-left: .3em;
+	color: Silver;
 }
 
 footer {
 	font-size: .8em;
 	text-align: right;
-	padding-bottom: 3em;
-	margin-right: 5em;
-	margin-left: auto;
-	width: 30em;
+	margin-top: 10em;
+	margin-bottom: 2em;
+}
+
+@media (max-width: 768px) {
+
+	h1 {
+		font-size: 4em;
+		text-align: center;
+	}
+	h1 .logo {
+		display: inline-block;
+		vertical-align: middle;
+		width: 3em;
+		margin-left: -.5em;
+	}
+	h1 .name {
+		margin-left: -1.3em;
+	}
+}
+
+@media (min-width: 769px) {
+
+	body {
+		max-width: 768px;
+		margin: 0 auto;
+	}
+
+	header,
+	article {
+		position: relative;
+		margin: 0 0 0 auto;
+	}
+
+	h1 {
+		margin: 1.5em 0;
+		font-size: 6em;
+		text-align: left;
+	}
+	h1 .logo {
+		position: absolute;
+		width: 5em;
+		top: -1.9em;
+		left: -3.2em;
+		z-index: -1;
+		margin-left: 0;
+	}
+	h1 .name {
+		margin-left: 0;
+	}
+
 }
