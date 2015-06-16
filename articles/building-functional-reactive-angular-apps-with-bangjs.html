@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+  <title>BangJS: Bacon-flavored Angular</title>
+
+  <link rel="shortcut icon" href="https://assets-cdn.github.com/images/icons/emoji/unicode/1f4a5.png?v5">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="BangJS">
+  <meta name="twitter:site" content="http://bangjs.org">
+  <meta name="twitter:description" content="Bacon-flavored Angular">
+  <meta name="twitter:image" content="https://avatars1.githubusercontent.com/u/12479785">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Bangers|Roboto:400,400italic,500,500italic">
+  <link rel="stylesheet" href="/theme/normalize.css">
+  <link rel="stylesheet" href="/theme/base.css">
+
+  
+  <link rel="stylesheet" href="/theme/narrow.css" media="all and (max-width: 1023px)">
+  <link rel="stylesheet" href="/theme/wide.css" media="all and (min-width: 1024px)">
+  <link rel="stylesheet" href="/style/index.css">
+  <link rel="stylesheet" href="/node_modules/highlight.js/styles/solarized_light.css">
+
+  
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-35475237-4', 'auto');
+    ga('send', 'pageview');
+
+  </script>
+</head>
+<body>
+  <header>
+    <h1>
+      <div class="logo"><img alt="&#128165; Bacon-flavored Angular" src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f4a5.png?v5"></div>
+      <span class="name">Bang</span><span class="suffix">JS</span>
+      <span class="title"></span>
+    </h1>
+  </header>
+  <article>
+    
+      <h2 id="building-functional-reactive-angular-apps-with-bangjs">Building functional reactive Angular apps with BangJS</h2>
+<p>create snippet/excerpt of article or other type of web page.</p>
+<p>simple enough to oversee easily, complex/asynchronous enough to quickly end up in event spaghetti without proper care.</p>
+<p>attempts to grab some suggested images from the page.</p>
+<p>measure and filter out images that do not meet minimum size.</p>
+<p>previous two steps:</p>
+<ul>
+<li>are being shortcut it they take longer that 3 sec total;</li>
+<li>always take at least 1 sec.</li>
+</ul>
+<p>uploads on submit</p>
+<h2 id="getting-started">Getting started</h2>
+<p>All you need to get a basic BangJS app running are AngularJS (latest 1.2 or up), Bacon.js (latest 0.7 or up) and BangJS (latest 0.3 or up):</p>
+<p><code>npm install angular baconjs bangjs</code></p>
+<p>Create a file <code>app.js</code> and have it define your application module:</p>
+<pre><code class="lang-js">angular.<span class="hljs-keyword">module</span>(<span class="hljs-string">'linkSnippetComposer'</span>, [<span class="hljs-string">'bang'</span>]);
+</code></pre>
+<p>Next throw up a simple HTML page that includes the following scripts:</p>
+<pre><code class="lang-html"><span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-attribute">src</span>=<span class="hljs-value">"node_modules/angular/angular.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-attribute">src</span>=<span class="hljs-value">"node_modules/baconjs/dist/Bacon.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-attribute">src</span>=<span class="hljs-value">"node_modules/bangjs/dist/bang.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-attribute">src</span>=<span class="hljs-value">"app.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span>
+</code></pre>
+<p>Also make sure that your app is being bootstrapped by including <code>ng-app=&quot;linkSnippetComposer&quot;</code> on the <code>body</code> or another appropriately high level element.</p>
+<p>Now we are ready to start working on our actual link snippet composer.</p>
+<h2 id="view">View</h2>
+<p>Let’s see which fields the view needs to achieve its desired behavior::</p>
+<pre><code class="lang-html">&lt;div <span class="hljs-variable">ng-controller=</span><span class="hljs-string">"compose"</span>&gt;
+  &lt;form <span class="hljs-variable">ng-submit=</span><span class="hljs-string">"scrape.start(input.url)"</span>&gt;
+    &lt;input <span class="hljs-variable">type=</span><span class="hljs-string">"text"</span> <span class="hljs-variable">ng-model=</span><span class="hljs-string">"input.url"</span>
+           <span class="hljs-variable">placeholder=</span><span class="hljs-string">"Type your URL here and hit Enter"</span> autofocus&gt;
+  &lt;/form&gt;
+  &lt;div <span class="hljs-variable">id=</span><span class="hljs-string">"snippet"</span> <span class="hljs-variable">ng-show=</span><span class="hljs-string">"scrape.result"</span> ng-cloak&gt;
+    &lt;div <span class="hljs-variable">class=</span><span class="hljs-string">"image"</span> <span class="hljs-variable">showcase-image=</span><span class="hljs-string">"image.selected"</span>
+         <span class="hljs-variable">ng-show=</span><span class="hljs-string">"image.selected"</span> ng-cloak&gt;
+        &lt;button <span class="hljs-variable">class=</span><span class="hljs-string">"prev"</span> <span class="hljs-variable">type=</span><span class="hljs-string">"button"</span> <span class="hljs-variable">ng-click=</span><span class="hljs-string">"image.select(-1)"</span>
+                <span class="hljs-variable">ng-show=</span><span class="hljs-string">"image.selectables.length &gt; 1"</span> ng-cloak&gt;&amp;laquo;&lt;/button&gt;
+        &lt;button <span class="hljs-variable">class=</span><span class="hljs-string">"next"</span> <span class="hljs-variable">type=</span><span class="hljs-string">"button"</span> <span class="hljs-variable">ng-click=</span><span class="hljs-string">"image.select(1)"</span>
+                <span class="hljs-variable">ng-show=</span><span class="hljs-string">"image.selectables.length &gt; 1"</span> ng-cloak&gt;&amp;raquo;&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;input <span class="hljs-variable">class=</span><span class="hljs-string">"title"</span> <span class="hljs-variable">type=</span><span class="hljs-string">"text"</span> <span class="hljs-variable">ng-model=</span><span class="hljs-string">"input.title"</span>
+           <span class="hljs-variable">placeholder=</span><span class="hljs-string">"Snippet title"</span>&gt;
+    &lt;textarea <span class="hljs-variable">class=</span><span class="hljs-string">"description"</span> <span class="hljs-variable">ng-model=</span><span class="hljs-string">"input.description"</span>
+              <span class="hljs-variable">placeholder=</span><span class="hljs-string">"Snippet description"</span>&gt;&lt;/textarea&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+<p>We grouped the fields in nested &quot;namespaces&quot;. Two reasons:</p>
+<ul>
+<li>nesting all values that go into <code>ngModel</code> inside <code>input</code> keeps us clear from the dotted binding gotcha;</li>
+<li>it helps us keeping things organized.</li>
+</ul>
+<p>Note that none of this nesting is required in any way. It is entirely up to you to decide how you want to name and organize your fields.</p>
+<p>Now list these fields as keys of a BangJS controller component as follows, with a short description of what each resulting observable is to represent:</p>
+<pre><code class="lang-js">angular.module(<span class="hljs-string">'linkSnippetComposer'</span>).
+  controller(<span class="hljs-string">'compose'</span>, Controller);
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Controller</span><span class="hljs-params">(<span class="hljs-variable">$scope</span>, <span class="hljs-variable">$http</span>, Bacon, bang)</span> </span>{
+  bang.component(<span class="hljs-variable">$scope</span>, {
+    scrape: {
+      start: <span class="hljs-comment">/* scrape commands */</span>,
+      result: <span class="hljs-comment">/* scraped data */</span>
+    },
+    image: {
+      selected: <span class="hljs-comment">/* currently selected snippet image */</span>,
+      selectables: <span class="hljs-comment">/* all selectable snippet images */</span>,
+      select: <span class="hljs-comment">/* change selected snippet image */</span>
+    },
+    input: {
+      title: <span class="hljs-comment">/* current snippet title */</span>,
+      description: <span class="hljs-comment">/* current snippet description */</span>
+      <span class="hljs-comment">// `url` is assigned by the view but we don't care about it here so we</span>
+      <span class="hljs-comment">// simply don't mention it.</span>
+    }
+  });
+}
+</code></pre>
+<p>For each of these fields we need to answer three questions:</p>
+<ol>
+<li>should the observable have a current value or should it merely be a stream of values? in other words; does it represent a state or an event.</li>
+<li>how do we want it to manifest itself on the scope;</li>
+<li>how should the observable behave -- when does it issue which event?</li>
+</ol>
+<p>The answer to the first question determines the first element of the field definition: the type of the observable -- either a property (<code>Bacon.Property</code>) or a stream (<code>Bacon.EventStream</code>).</p>
+<p>The answer to the second question determines the second part of the field definition: how the observable connects to and manifests itself on the scope.</p>
+<p>The answer to the third question defines the implementation of the field&#39;s setup function. This is where dependencies on other fields may be specified. Notice that some field factory methods define some behavior out-of-the-box, making defining an explicit setup function option.</p>
+<p>Notice how we have nicely divided the task at hand into a manageable set of smaller problems, which can be solved one by one by answering two very concrete questions.</p>
+<p>Let&#39;s give it a shot.</p>
+<h3 id="-scrape-start-"><code>scrape.start</code></h3>
+<ol>
+<li>we are representing an action so no current value is needed.</li>
+<li>should be invokable with a URL as its single argument.</li>
+<li>stream each invocation represented by the to-be-scraped URL.</li>
+</ol>
+<pre><code class="lang-js">bang.stream.<span class="hljs-keyword">method</span>(function (url) {
+  <span class="hljs-keyword">return</span> url;
+})
+</code></pre>
+<p>Or simply:</p>
+<pre><code class="lang-js">bang.stream.<span class="hljs-keyword">method</span>(angular.identity)
+</code></pre>
+<h3 id="-scrape-result-"><code>scrape.result</code></h3>
+<ol>
+<li>latest scraped data should be available to anyone who requests it at any point in time.</li>
+<li>scraped data should be made available as scope property.</li>
+<li>scrape request should be sent and parsed upon every URL coming in over <code>scrape.start</code>. we are only interested in the last scrape request the came in.</li>
+</ol>
+<pre><code class="lang-js">bang.property.digest(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.scrape.start.flatMapLatest(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(url)</span> </span>{
+    <span class="hljs-keyword">return</span> Bacon.fromPromise(
+      $http.<span class="hljs-keyword">get</span>(<span class="hljs-string">'http://scraper.nouncy.be'</span>, { url: url })
+    ).map(<span class="hljs-string">'.metadata'</span>);
+  });
+})
+</code></pre>
+<h3 id="-image-selectables-"><code>image.selectables</code></h3>
+<ol>
+<li>represents state so maintain current value.</li>
+<li>selectable images should be made available as scope property.</li>
+<li>every time data is scraped, images should be extracted and represented here.</li>
+</ol>
+<pre><code class="lang-js">bang.property.digest(function (sink) {
+  this.scrape.<span class="hljs-literal">result</span>.onValue(function (data) {
+    sink(data.image || []);
+  });
+})
+</code></pre>
+<h3 id="-input-title-"><code>input.title</code></h3>
+<ol>
+<li>represents current value in text input.</li>
+<li>should expose a scope property that guides the value of the observable and vice versa (value of observable is reflected in scope property). a.k.a. two-way binding.</li>
+<li>every time user changes value of text input <em>and</em> very time data is scraped, title value should be updated.</li>
+</ol>
+<pre><code class="lang-js">bang.property.watch(function () {
+  <span class="hljs-keyword">return</span> this.scrape.<span class="hljs-literal">result</span>.map('.title.<span class="hljs-number">0</span>');
+})
+</code></pre>
+<h3 id="result">Result</h3>
+<pre><code class="lang-js">angular.module(<span class="hljs-string">'linkSnippetComposer'</span>).
+  controller(<span class="hljs-string">'compose'</span>, Controller);
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Controller</span><span class="hljs-params">($scope, $http, Bacon, bang)</span> </span>{
+  bang.component($scope, {
+
+    scrape: {
+
+      start: bang.stream.method(angular.identity),
+
+      result: bang.property.digest(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.scrape.start.flatMapLatest(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(url)</span> </span>{
+          <span class="hljs-keyword">return</span> Bacon.fromPromise(
+            $http.<span class="hljs-keyword">get</span>(<span class="hljs-string">'http://scraper.nouncy.be'</span>, { url: url })
+          ).map(<span class="hljs-string">'.metadata'</span>);
+        });
+      })
+
+    },
+
+    image: {
+
+      selected: bang.property.digest(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(sink, me)</span> </span>{
+        <span class="hljs-keyword">var</span> current;
+        me.onValue(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(url)</span> </span>{
+          current = url;
+        });
+
+        sink(<span class="hljs-literal">undefined</span>);
+        <span class="hljs-keyword">this</span>.image.selectables.onValue(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(urls)</span> </span>{
+          sink(urls[<span class="hljs-number">0</span>] || <span class="hljs-literal">null</span>);
+        });
+
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.image.select.flatMapLatest(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(delta)</span> </span>{
+          <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.image.selectables.map(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(urls)</span> </span>{
+            <span class="hljs-keyword">var</span> index = urls.indexOf(current) + delta;
+            index %= urls.length;
+            <span class="hljs-keyword">if</span> (index &lt; <span class="hljs-number">0</span>) index += urls.length;
+            <span class="hljs-keyword">return</span> urls[index];
+          }).take(<span class="hljs-number">1</span>);
+        });
+      }),
+
+      selectables: bang.property.digest(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(sink)</span> </span>{
+        <span class="hljs-keyword">this</span>.scrape.result.onValue(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(data)</span> </span>{
+          sink(data.image || []);
+        });
+      }),
+
+      select: bang.stream.method(angular.identity)
+
+    },
+
+    input: {
+
+      title: bang.property.watch(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.scrape.result.map(<span class="hljs-string">'.title.0'</span>);
+      }),
+
+      description: bang.property.watch(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(sink)</span> </span>{
+        <span class="hljs-keyword">this</span>.scrape.result.onValue(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(data)</span> </span>{
+          sink(data.title[<span class="hljs-number">0</span>]);
+        });
+      })
+
+      <span class="hljs-comment">// `url` is assigned by the view but we don't care about it here so we</span>
+      <span class="hljs-comment">// simply don't mention it.</span>
+
+    }
+
+  });
+}
+</code></pre>
+<p>Notice how some fields are implemented in a purely FRP way by generating a observable and returning it, while others take a style more akin to traditional event handling using <code>onValue</code> and <code>sink</code>. Consider <code>input.title</code> versus <code>input.description</code>. Both styles can be used interchangeably, and can even be combined (as in <code>image.selected</code>).</p>
+<p>For instance <code>scrape.result</code> could be implemented as follows:</p>
+<pre><code class="lang-js">// use sink to implement scrape.<span class="hljs-literal">result</span>
+</code></pre>
+<p>While <code>image.selectables</code> could be implemented as such:</p>
+<pre><code class="lang-js"><span class="hljs-comment">// use FRP-based approach</span>
+</code></pre>
+<p>Similarly, we can replace the somewhat verbose implementation of <code>image.selected</code> with a full-blown FRP version (<em>ahh that&#39;s better</em>):</p>
+<pre><code class="lang-js">bang.property.digest(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.image.selectables.flatMapLatest(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(urls)</span> </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.image.select.
+      scan(<span class="hljs-number">0</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(cursor, delta)</span> </span>{
+        <span class="hljs-keyword">return</span> cursor + delta;
+      }).
+      map(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(cursor)</span> </span>{
+        <span class="hljs-keyword">var</span> index = cursor % urls.length;
+        <span class="hljs-keyword">if</span> (index &lt; <span class="hljs-number">0</span>) index += urls.length;
+        <span class="hljs-keyword">return</span> urls[index];
+      });
+  }.bind(<span class="hljs-keyword">this</span>));
+})
+</code></pre>
+<p>This is where BangJS truly shines. You get all the benefits of FRP, without <em>requiring</em> that you use it everywhere and everytime. You can quickly prototype a field using a lot of <code>onValue</code>s and <code>sink</code>s, and then implement it more concisely in a FRP fashion at a later stage if you prefer. Or you can use <code>onValue</code> and <code>sink</code> in fields where you feel a FRP-based implementation isn&#39;t very readable. You can even have your not-so-FRP-savvy colleague work with you on an implementation without giving in on &quot;reactiveness&quot;. Bliss!</p>
+<p>For an exhaustive overview of all the FRP tools readily available to you check out the <a href="https://baconjs.github.io/api.html">Bacon.js API reference</a>.</p>
+<p>Check out the app we just built, running live <a href="http://bangjs.org/showcase/v1.html">here</a>.</p>
+<h2 id="debugging">Debugging</h2>
+<p>Spot errors without really looking for them. The built-in debug logs give a zero-cost instant insight in the behavior and state of your application.</p>
+<p>Can be enabled and disabled via <code>$logProvider</code>:</p>
+<pre><code class="lang-js">angular.module(<span class="hljs-string">'linkSnippetComposer'</span>).
+  config(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(<span class="hljs-variable">$logProvider</span>)</span> </span>{
+    <span class="hljs-variable">$logProvider</span>.debugEnabled(<span class="hljs-comment">/* boolean */</span>);
+  });
+</code></pre>
+<h2 id="arrows">Arrows</h2>
+<p>As a side note; if instead of EcmaScript 5 JavaScript you use a language that supports arrows (such as EcmaScript 6, CoffeeScript, TypeScript), much of the overhead in the syntax can be mitigated.</p>
+<p>Take for example the FRP implementation of <code>image.selected</code> once again. In ES6 it can be formulated as follows:</p>
+<pre><code class="lang-js">bang.property.digest(function () {
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.<span class="hljs-built_in">image</span>.selectables.flatMapLatest(urls =&gt;
+    <span class="hljs-keyword">this</span>.<span class="hljs-built_in">image</span>.select.
+      scan(<span class="hljs-number">0</span>, (<span class="hljs-built_in">cursor</span>, delta) =&gt; <span class="hljs-built_in">cursor</span> + delta).
+      <span class="hljs-built_in">map</span>(<span class="hljs-built_in">cursor</span> =&gt; {
+        let index = <span class="hljs-built_in">cursor</span> % urls.length;
+        <span class="hljs-keyword">if</span> (index &lt; <span class="hljs-number">0</span>) index += urls.length;
+        <span class="hljs-keyword">return</span> urls[index];
+      })
+  );
+})
+</code></pre>
+<p>And in CoffeeScript we can undress it even more (at the risk of unreadability):</p>
+<pre><code class="lang-coffee">bang.property.digest -&gt;
+  <span class="hljs-variable">@image</span>.selectables.flatMapLatest (urls) =&gt;
+    <span class="hljs-variable">@image</span>.<span class="hljs-keyword">select</span>.
+      scan(<span class="hljs-number">0</span>, (cursor, delta) -&gt; cursor + delta).
+      <span class="hljs-keyword">map</span> (cursor) -&gt;
+        <span class="hljs-keyword">index</span> = cursor % urls.<span class="hljs-keyword">length</span>
+        <span class="hljs-keyword">index</span> += urls.<span class="hljs-keyword">length</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">index</span> &lt; <span class="hljs-number">0</span>
+        urls[<span class="hljs-keyword">index</span>]
+</code></pre>
+
+    
+  </article>
+  <footer>
+    <span class="emoji" style="background-image: url('https://assets-cdn.github.com/images/icons/emoji/unicode/1f468.png?v5');"></span>
+    <a href="https://twitter.com/timmolendijk">@timmolendijk</a> was here
+  </footer>
+</body>
+</html>

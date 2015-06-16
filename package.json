@@ -1,0 +1,27 @@
+{
+  "name": "bangjs.github.io",
+  "private": true,
+  "scripts": {
+    "build": "gulp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bangjs/bangjs.github.io.git"
+  },
+  "author": "Tim Molendijk <npm@timmolendijk.nl>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bangjs/bangjs.github.io/issues"
+  },
+  "homepage": "http://bangjs.org",
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-data": "^1.2.0",
+    "gulp-util": "^3.0.5",
+    "highlight.js": "^8.6.0",
+    "marked": "^0.3.3",
+    "minimist": "^1.1.1",
+    "nunjucks": "^1.3.4",
+    "through2": "^0.6.5"
+  }
+}

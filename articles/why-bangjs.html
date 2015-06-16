@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+  <title>BangJS: Bacon-flavored Angular</title>
+
+  <link rel="shortcut icon" href="https://assets-cdn.github.com/images/icons/emoji/unicode/1f4a5.png?v5">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="BangJS">
+  <meta name="twitter:site" content="http://bangjs.org">
+  <meta name="twitter:description" content="Bacon-flavored Angular">
+  <meta name="twitter:image" content="https://avatars1.githubusercontent.com/u/12479785">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Bangers|Roboto:400,400italic,500,500italic">
+  <link rel="stylesheet" href="/theme/normalize.css">
+  <link rel="stylesheet" href="/theme/base.css">
+
+  
+  <link rel="stylesheet" href="/theme/narrow.css" media="all and (max-width: 1023px)">
+  <link rel="stylesheet" href="/theme/wide.css" media="all and (min-width: 1024px)">
+  <link rel="stylesheet" href="/style/index.css">
+  <link rel="stylesheet" href="/node_modules/highlight.js/styles/solarized_light.css">
+
+  
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-35475237-4', 'auto');
+    ga('send', 'pageview');
+
+  </script>
+</head>
+<body>
+  <header>
+    <h1>
+      <div class="logo"><img alt="&#128165; Bacon-flavored Angular" src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f4a5.png?v5"></div>
+      <span class="name">Bang</span><span class="suffix">JS</span>
+      <span class="title"></span>
+    </h1>
+  </header>
+  <article>
+    
+      <h2 id="problem">problem</h2>
+<p>the nature of user interfaces and front-end apps in general is inherently asynchronous. servers and users have one thing in common: you never know when they decide to talk to you. the typical response to this challenge: events. and more events. and even more events. you soon reach the point where you find yourself facing a giant smelly bowl of event spaghetti and the ominous sensation that it is impossible to exclude the possibility of edge case scenarios in which your entire user interface behavior falls to pieces.</p>
+<p>imagine you are building a single page web app. the first thing you probably want to do is load some of the user data based on a user id or maybe just a session key. as long as this data is not in yet, the user interface can’t do its job and thus the user should not be allowed to interact with it. so you hide the user interface and you register a callback (a.k.a. event handler) to unhide it as soon as all data is in place. your load times are not too great but hey as long as you’re not dealing with too large amounts of data; it works.</p>
+<h3 id="example-1">example 1</h3>
+<p>now imagine that part of the user interface is not only dependent on having user data, but also on the location hash being in a certain state. to account for this second asynchronous conditionality you would have to register a second event handler, and a slew of horrific bookkeeping follows in its footsteps:</p>
+<pre><code class="lang-js"><span class="hljs-keyword">var</span> isDataLoaded = <span class="hljs-literal">false</span>;
+emitter.on(<span class="hljs-string">'userDataLoaded'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+  isDataLoaded = <span class="hljs-literal">true</span>;
+  refreshVisiblity();
+});
+<span class="hljs-keyword">var</span> locationHashMatch = <span class="hljs-literal">false</span>;
+emitter.on(<span class="hljs-string">'locationHashChange'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+  locationHashMatch = location.hash.match(<span class="hljs-regexp">/yep/</span>);
+  refreshVisiblity();
+});
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">refreshVisibility</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">if</span> (isDataLoaded &amp;&amp; locationHashMatch)
+    ui.show();
+  <span class="hljs-keyword">else</span>
+    ui.hide();
+}
+</code></pre>
+<h3 id="example-2">example 2</h3>
+<p>imagine that part of your user interface requires some other piece of data to work. this data may need to be loaded from server, but it may also be already available (loaded earlier in the session, or cached in localstorage). now as soon as your user interface wants to do something with this data, it will have to explicitly support the two scenario. the resulting code is not pretty. mutable state galore:</p>
+<pre><code class="lang-js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">doSomethingWith</span>(<span class="hljs-params">dataX</span>) </span>{
+  <span class="hljs-comment">// follow user orders</span>
+}
+<span class="hljs-keyword">var</span> loadedDataX = localstorage[<span class="hljs-string">'loadedDataX'</span>];
+ui.on(<span class="hljs-string">'userActsOnDataX'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">if</span> (loadedDataX)
+    doSomethingWith(loadedDataX)
+  <span class="hljs-keyword">else</span>
+    emitter.on(<span class="hljs-string">'dataXLoaded'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">e, dataX</span>) </span>{
+      emitter.off(<span class="hljs-string">'dataXLoaded'</span>, <span class="hljs-built_in">arguments</span>.callee);
+      localstorage[<span class="hljs-string">'loadedDataX'</span>] = dataX;
+      doSomethingWith(dataX);
+    });
+});
+</code></pre>
+<h2 id="solution">solution</h2>
+<p>divide component logic in a set of observables. the individual observables are interconnected via FRP operators, which makes asynchronous communication a first-class citizen.</p>
+<p>the behavior of each individual observable on the other hand can be implemented either with pure FRP (no mutable state) or entirely imperative (local mutable state) or something in between. this freedom of style without losing any of the core benefits of an FRP-based architecture is what makes BangJS truly enjoyable to work with.</p>
+<p>each observable can have an equally named representation on the external interface, as either a getter property, a getter/setter property, a function or as the observable itself. an initial impression of a useful set of observables can very easily be compiled by simply listing the values that are needed in the view: <em>work from the outside inward</em></p>
+<p>another useful rule of thumb is to have each observable define all of its own behavior and nothing but its own behavior. that way you can easily get an complete overview of how an observable (often corresponding directly to a view value) behaves and which others it depends on. this greatly improves composability and therefore maintainability.</p>
+
+    
+  </article>
+  <footer>
+    <span class="emoji" style="background-image: url('https://assets-cdn.github.com/images/icons/emoji/unicode/1f468.png?v5');"></span>
+    <a href="https://twitter.com/timmolendijk">@timmolendijk</a> was here
+  </footer>
+</body>
+</html>
