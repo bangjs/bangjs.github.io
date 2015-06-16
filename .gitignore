@@ -30,3 +30,8 @@ coverage
 
 # Build dependencies
 node_modules
+node_modules/*
+
+node_modules/highlight.js/*
+node_modules/highlight.js/styles/*
+!node_modules/highlight.js/styles/solarized_light.css
